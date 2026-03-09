@@ -14,118 +14,211 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
   setupAuth(app);
 
-  app.get(api.apps.list.path, async (req, res) => {
-    const allApps = await storage.getApps();
-    res.status(200).json(allApps);
-  });
-
-  app.get(api.apps.get.path, async (req, res) => {
-    const appData = await storage.getApp(Number(req.params.id));
-    if (!appData) {
-      return res.status(404).json({ message: "App not found" });
+  // GET ALL APPS
+  app.get(api.apps.list.path, async (_req, res) => {
+    try {
+      const apps = await storage.getApps();
+      res.status(200).json(apps);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch apps" });
     }
-    res.status(200).json(appData);
   });
 
+  // GET SINGLE APP
+  app.get(api.apps.get.path, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const appData = await storage.getApp(id);
+
+      if (!appData) {
+        return res.status(404).json({ message: "App not found" });
+      }
+
+      res.status(200).json(appData);
+    } catch {
+      res.status(500).json({ message: "Failed to fetch app" });
+    }
+  });
+
+  // CREATE APP
   app.post(api.apps.create.path, async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ message: "Unauthorized" });
+
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     try {
       const input = api.apps.create.input.parse(req.body);
       const newApp = await storage.createApp(input);
+
       res.status(201).json(newApp);
+
     } catch (err) {
+
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join("."),
+        });
       }
-      throw err;
+
+      res.status(500).json({ message: "Failed to create app" });
     }
   });
 
+  // UPDATE APP
   app.put(api.apps.update.path, async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ message: "Unauthorized" });
+
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     try {
+
+      const id = Number(req.params.id);
       const input = api.apps.update.input.parse(req.body);
-      const updated = await storage.updateApp(Number(req.params.id), input);
+
+      const updated = await storage.updateApp(id, input);
+
       res.status(200).json(updated);
+
     } catch (err) {
+
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join("."),
+        });
       }
+
       if (err instanceof Error && err.message === "App not found") {
         return res.status(404).json({ message: "App not found" });
       }
-      throw err;
+
+      res.status(500).json({ message: "Failed to update app" });
     }
   });
 
+  // DELETE APP
   app.delete(api.apps.delete.path, async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ message: "Unauthorized" });
-    await storage.deleteApp(Number(req.params.id));
-    res.status(204).send();
-  });
 
-  app.post(api.apps.incrementDownload.path, async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     try {
-      const updated = await storage.incrementDownloadCount(Number(req.params.id));
-      res.status(200).json(updated);
-    } catch (err) {
-      return res.status(404).json({ message: "App not found" });
+      const id = Number(req.params.id);
+
+      await storage.deleteApp(id);
+
+      res.status(204).send();
+
+    } catch {
+      res.status(500).json({ message: "Failed to delete app" });
     }
   });
 
-  app.get(api.stats.get.path, async (req, res) => {
-    const st = await storage.getStats();
-    res.status(200).json(st);
+  // INCREMENT DOWNLOAD
+  app.post(api.apps.incrementDownload.path, async (req, res) => {
+
+    try {
+      const id = Number(req.params.id);
+
+      const updated = await storage.incrementDownloadCount(id);
+
+      res.status(200).json(updated);
+
+    } catch {
+      res.status(404).json({ message: "App not found" });
+    }
   });
 
-  app.post(api.stats.incrementVisitor.path, async (req, res) => {
-    const st = await storage.incrementVisitorCount();
-    res.status(200).json(st);
+  // GET STATS
+  app.get(api.stats.get.path, async (_req, res) => {
+
+    try {
+      const stats = await storage.getStats();
+      res.status(200).json(stats);
+
+    } catch {
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
   });
 
+  // VISITOR COUNT
+  app.post(api.stats.incrementVisitor.path, async (_req, res) => {
+
+    try {
+      const stats = await storage.incrementVisitorCount();
+      res.status(200).json(stats);
+
+    } catch {
+      res.status(500).json({ message: "Failed to update visitor count" });
+    }
+  });
+
+  // LOGIN
   app.post(api.auth.login.path, async (req, res) => {
+
     const { username, password } = req.body;
+
     const user = await storage.getUserByUsername(username);
+
     if (!user || user.password !== password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
+
     req.session.userId = user.id;
+
     res.status(200).json({ message: "Logged in successfully" });
   });
 
+  // LOGOUT
   app.post(api.auth.logout.path, (req, res) => {
+
     req.session.destroy(() => {
       res.status(200).json({ message: "Logged out successfully" });
     });
   });
 
-  app.get(api.auth.me.path, async (req, res) => {
+  // CURRENT USER
+  app.get(api.auth.me.path, (req, res) => {
+
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
+
     res.status(200).json({ username: "admin" });
   });
 
+  // SEED DATA
   async function seedDatabase() {
-    const existingAdmin = await storage.getUserByUsername("admin");
-    if (!existingAdmin) {
-      await storage.createUser({ username: "admin", password: "password123" });
+
+    const admin = await storage.getUserByUsername("admin");
+
+    if (!admin) {
+      await storage.createUser({
+        username: "admin",
+        password: "password123",
+      });
     }
 
-    const existingApps = await storage.getApps();
-    if (existingApps.length === 0) {
+    const apps = await storage.getApps();
+
+    if (apps.length === 0) {
+
       const sampleApps = [
-        { name: "Termux", iconUrl: "https://upload.wikimedia.org/wikipedia/commons/4/45/Termux-logo.png", downloadLink: "https://f-droid.org/repo/com.termux_118.apk", downloadCount: 80 },
-        { name: "NP Manager", iconUrl: "https://play-lh.googleusercontent.com/yvjD-bS9J_JvBXZr128y0NnOq20G9B22MvA7l07tX8zN54b9w_R300VwA3u9fQ=w240-h480-rw", downloadLink: "https://example.com/npmanager.apk", downloadCount: 51 },
-        { name: "ZArchiver", iconUrl: "https://play-lh.googleusercontent.com/1GZOqA5-aT4-nS4Z90j3D4zBf6Bw8I7y9M16cZfA8H35a-w4bV3w0vV8D_q1D9Fq=w240-h480-rw", downloadLink: "https://example.com/zarchiver.apk", downloadCount: 18 },
-        { name: "Lucky Patcher", iconUrl: "https://www.luckypatchers.com/wp-content/uploads/2016/12/lucky-patcher-icon-150x150.png", downloadLink: "https://example.com/luckypatcher.apk", downloadCount: 56 },
-        { name: "APK Editor", iconUrl: "https://play-lh.googleusercontent.com/P4wZ-1aX-xV9pW100D58K_P3h3aY8I_B8I1E6G44Z_C5tE3Q4x_J3Z757tW=w240-h480-rw", downloadLink: "https://example.com/apkeditor.apk", downloadCount: 91 },
-        { name: "MT Manager", iconUrl: "https://play-lh.googleusercontent.com/4J10X5Q_O6_33D72Q_g4aG9S1B_U2B5N8c3n9G2K_6v6w2N4u03X92W5M0x3eQ=w240-h480-rw", downloadLink: "https://example.com/mtmanager.apk", downloadCount: 63 },
-        { name: "Bot X Dialog", iconUrl: "https://i.ibb.co/L5Q2G8W/botx.png", downloadLink: "https://example.com/botxdialog.apk", downloadCount: 84 },
-        { name: "APK Tool M", iconUrl: "https://i.ibb.co/3sDZXkG/apktoolm.png", downloadLink: "https://example.com/apktoolm.apk", downloadCount: 109 }
+        {
+          name: "Termux",
+          iconUrl: "https://upload.wikimedia.org/wikipedia/commons/4/45/Termux-logo.png",
+          downloadLink: "https://f-droid.org/repo/com.termux_118.apk",
+          downloadCount: 80
+        }
       ];
+
       for (const app of sampleApps) {
         await storage.createApp(app);
       }
