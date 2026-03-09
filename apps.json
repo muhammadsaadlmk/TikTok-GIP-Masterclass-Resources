@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "name": "Termux",
+    "iconUrl": "https://upload.wikimedia.org/wikipedia/commons/4/45/Termux-logo.png",
+    "downloadLink": "https://f-droid.org/repo/com.termux_118.apk",
+    "downloadCount": 80
+  },
+  {
+    "id": 2,
+    "name": "NP Manager",
+    "iconUrl": "https://play-lh.googleusercontent.com/yvjD-bS9J_JvBXZr128y0NnOq20G9B22MvA7l07tX8zN54b9w_R300VwA3u9fQ=w240-h480-rw",
+    "downloadLink": "https://example.com/npmanager.apk",
+    "downloadCount": 51
+  },
+  {
+    "id": 3,
+    "name": "ZArchiver",
+    "iconUrl": "https://play-lh.googleusercontent.com/1GZOqA5-aT4-nS4Z90j3D4zBf6Bw8I7y9M16cZfA8H35a-w4bV3w0vV8D_q1D9Fq=w240-h480-rw",
+    "downloadLink": "https://example.com/zarchiver.apk",
+    "downloadCount": 18
+  },
+  {
+    "id": 4,
+    "name": "Lucky Patcher",
+    "iconUrl": "https://www.luckypatchers.com/wp-content/uploads/2016/12/lucky-patcher-icon-150x150.png",
+    "downloadLink": "https://example.com/luckypatcher.apk",
+    "downloadCount": 56
+  },
+  {
+    "id": 5,
+    "name": "APK Editor",
+    "iconUrl": "https://play-lh.googleusercontent.com/P4wZ-1aX-xV9pW100D58K_P3h3aY8I_B8I1E6G44Z_C5tE3Q4x_J3Z757tW=w240-h480-rw",
+    "downloadLink": "https://example.com/apkeditor.apk",
+    "downloadCount": 91
+  },
+  {
+    "id": 6,
+    "name": "MT Manager",
+    "iconUrl": "https://play-lh.googleusercontent.com/4J10X5Q_O6_33D72Q_g4aG9S1B_U2B5N8c3n9G2K_6v6w2N4u03X92W5M0x3eQ=w240-h480-rw",
+    "downloadLink": "https://example.com/mtmanager.apk",
+    "downloadCount": 63
+  },
+  {
+    "id": 7,
+    "name": "Bot X Dialog",
+    "iconUrl": "https://i.ibb.co/L5Q2G8W/botx.png",
+    "downloadLink": "https://example.com/botxdialog.apk",
+    "downloadCount": 84
+  },
+  {
+    "id": 8,
+    "name": "APK Tool M",
+    "iconUrl": "https://i.ibb.co/3sDZXkG/apktoolm.png",
+    "downloadLink": "https://example.com/apktoolm.apk",
+    "downloadCount": 109
+  }
+]
