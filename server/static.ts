@@ -3,8 +3,6 @@ import fs from "fs";
 import path from "path";
 
 export function serveStatic(app: Express) {
-  // In production, the bundled server and public directory are in the same dist folder
-  // __dirname will be the dist directory when the code is bundled by esbuild
   const distPath = path.join(__dirname, "public");
 
   if (!fs.existsSync(distPath)) {
@@ -13,11 +11,11 @@ export function serveStatic(app: Express) {
     );
   }
 
-  // Serve static files
+  // serve static files
   app.use(express.static(distPath));
 
-  // SPA fallback route
-  app.use("/*", (_req, res) => {
+  // SPA fallback (IMPORTANT FIX)
+  app.use(/.*/, (_req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
 }
